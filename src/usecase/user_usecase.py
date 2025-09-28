@@ -29,12 +29,14 @@ class UserUseCase:
         """
         return self.user_repository.get_user_by_id(user_id)
 
-    def get_all_users(self) -> List[User]:
+    def get_all_users(self, skip: int = 0, limit: int = 100) -> List[User]:
         """
-        Get all users.
+        Get all users with pagination.
+        :param skip: Number of records to skip
+        :param limit: Maximum number of records to return
         :return: List of Users
         """
-        return self.user_repository.get_users()
+        return self.user_repository.get_users(skip=skip, limit=limit)
 
     def delete_user(self, user_id: UUID) -> None:
         """

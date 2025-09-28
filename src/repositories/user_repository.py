@@ -1,6 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
+from pydantic import EmailStr
 from sqlmodel import Session, select
 
 from src.infra.models import UserTable
@@ -21,7 +22,12 @@ class UserRepository:
         Create a new user in the database.
         :param user_create: UserCreate
         :return: User
+        :raises ValueError: If email already exists
         """
+        existing_user = self.get_user_by_email(user_create.email)
+        if existing_user:
+            raise ValueError("Email already exists")
+        
         db_user = UserTable.model_validate(user_create)
         self.session.add(db_user)
         self.session.commit()
@@ -36,6 +42,20 @@ class UserRepository:
         :return: User or None
         """
         statement = select(UserTable).where(UserTable.id == user_id)
+        db_user = self.session.exec(statement).first()
+
+        if not db_user:
+            return None
+
+        return User.model_validate(db_user)
+
+    def get_user_by_email(self, email: EmailStr) -> Optional[User]:
+        """
+        Get user by email.
+        :param email: User email
+        :return: User or None
+        """
+        statement = select(UserTable).where(UserTable.email == email)
         db_user = self.session.exec(statement).first()
 
         if not db_user:

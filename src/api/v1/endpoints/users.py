@@ -23,8 +23,14 @@ async def create_user(
     :return: UserResponse
     """
     user_use_case = UserUseCase(user_repository)
-    user = user_use_case.create_user(user_create)
-    return UserResponse.model_validate(user)
+    try:
+        user = user_use_case.create_user(user_create)
+        return UserResponse.model_validate(user)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
 
 
 @router.get("/{user_id}", response_model=UserResponse)
@@ -62,7 +68,7 @@ async def list_users(
     :return: List of UserResponse
     """
     user_use_case = UserUseCase(user_repository)
-    users = user_use_case.get_all_users()
+    users = user_use_case.get_all_users(skip=skip, limit=limit)
     return [UserResponse.model_validate(user) for user in users]
 
 
