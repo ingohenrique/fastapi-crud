@@ -68,8 +68,14 @@ async def list_users(
     :return: List of UserResponse
     """
     user_use_case = UserUseCase(user_repository)
-    users = user_use_case.get_all_users(skip=skip, limit=limit)
-    return [UserResponse.model_validate(user) for user in users]
+    try:
+        users = user_use_case.get_all_users(skip=skip, limit=limit)
+        return [UserResponse.model_validate(user) for user in users]
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -84,11 +90,11 @@ async def delete_user(
     :return: None
     """
     user_use_case = UserUseCase(user_repository)
-    user = user_use_case.get_user_by_id(user_id)
-    if not user:
+    try:
+        user_use_case.delete_user(user_id)
+        return None
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            detail=str(e)
         )
-    user_use_case.delete_user(user_id)
-    return None
