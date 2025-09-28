@@ -54,3 +54,16 @@ class UserRepository:
         db_users = self.session.exec(statement).all()
 
         return [User.model_validate(db_user) for db_user in db_users]
+
+    def delete_user(self, user_id: UUID) -> None:
+        """
+        Delete user by ID.
+        :param user_id: User UUID
+        :return: None
+        """
+        statement = select(UserTable).where(UserTable.id == user_id)
+        db_user = self.session.exec(statement).first()
+        if db_user:
+            self.session.delete(db_user)
+            self.session.commit()
+        return None

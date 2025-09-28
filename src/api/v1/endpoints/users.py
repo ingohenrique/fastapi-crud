@@ -6,7 +6,7 @@ from src.infra.database.deps import get_user_repository
 from src.models.user import UserCreate
 from src.repositories.user_repository import UserRepository
 from src.schemas.user import UserResponse
-from src.usecase.create_user import CreateUserUseCase
+from src.usecase.user_usecase import UserUseCase
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -22,8 +22,8 @@ async def create_user(
     :param user_repository: UserRepository dependency
     :return: UserResponse
     """
-    use_case = CreateUserUseCase(user_repository)
-    user = use_case.execute(user_create)
+    user_use_case = UserUseCase(user_repository)
+    user = user_use_case.create_user(user_create)
     return UserResponse.model_validate(user)
 
 
@@ -38,7 +38,8 @@ async def get_user(
     :param user_repository: UserRepository dependency
     :return: UserResponse
     """
-    user = user_repository.get_user_by_id(user_id)
+    user_use_case = UserUseCase(user_repository)
+    user = user_use_case.get_user_by_id(user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -60,5 +61,28 @@ async def list_users(
     :param user_repository: UserRepository dependency
     :return: List of UserResponse
     """
-    users = user_repository.get_users(skip=skip, limit=limit)
+    user_use_case = UserUseCase(user_repository)
+    users = user_use_case.get_all_users()
     return [UserResponse.model_validate(user) for user in users]
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+        user_id: UUID,
+        user_repository: UserRepository = Depends(get_user_repository)
+) -> None:
+    """
+    Delete a user by ID.
+    :param user_id: User UUID
+    :param user_repository: UserRepository dependency
+    :return: None
+    """
+    user_use_case = UserUseCase(user_repository)
+    user = user_use_case.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    user_use_case.delete_user(user_id)
+    return None
