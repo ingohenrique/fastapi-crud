@@ -75,6 +75,32 @@ class UserRepository:
 
         return [User.model_validate(db_user) for db_user in db_users]
 
+    def update_user(self, user_id: UUID, user_update: UserCreate) -> User:
+        """
+        Update user by ID.
+        :param user_id: User UUID
+        :param user_update: UserCreate
+        :return: Updated User
+        :raises ValueError: If user not found or email already exists
+        """
+        db_user = self.session.get(UserTable, user_id)
+        if not db_user:
+            raise ValueError("User not found")
+
+        if db_user.email != user_update.email:
+            existing_user = self.get_user_by_email(user_update.email)
+            if existing_user:
+                raise ValueError("Email already exists")
+
+        db_user.name = user_update.name
+        db_user.email = str(user_update.email)
+
+        self.session.add(db_user)
+        self.session.commit()
+        self.session.refresh(db_user)
+
+        return User.model_validate(db_user)
+
     def delete_user(self, user_id: UUID) -> None:
         """
         Delete user by ID.

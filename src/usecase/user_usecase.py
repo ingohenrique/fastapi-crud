@@ -50,6 +50,24 @@ class UserUseCase:
             
         return self.user_repository.get_users(skip=skip, limit=limit)
 
+    def update_user(self, user_id: UUID, user_update: UserCreate) -> User:
+        """
+        Update user by ID with basic validation.
+        :param user_id: User UUID
+        :param user_update: UserCreate
+        :return: Updated User
+        :raises ValueError: If user not found or validation fails
+        """
+        user = self.user_repository.get_user_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+
+        # Basic validation: Name must not be empty
+        if not user_update.name.strip():
+            raise ValueError("Name cannot be empty")
+
+        return self.user_repository.update_user(user_id, user_update)
+
     def delete_user(self, user_id: UUID) -> None:
         """
         Delete user by ID.
