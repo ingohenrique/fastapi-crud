@@ -11,7 +11,6 @@ if not DATABASE_URL:
 
 engine = create_engine(DATABASE_URL, echo=True)
 
-
 def get_session():
     """Get database session."""
     with Session(engine) as session:

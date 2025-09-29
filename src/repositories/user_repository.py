@@ -4,7 +4,7 @@ from uuid import UUID
 from pydantic import EmailStr
 from sqlmodel import Session, select
 
-from src.infra.models import UserTable
+from src.infra.database.models import UserTable
 from src.models.user import User, UserCreate
 
 
